@@ -35,11 +35,16 @@ export const EXPIRATIONS = [
   { value: "1y", label: "1 year", requiresAuth: true },
 ] as const;
 
-export const VISIBILITIES = [
+export const VISIBILITIES: ReadonlyArray<{
+  value: "public" | "unlisted" | "private";
+  label: string;
+  description: string;
+  requiresAuth?: boolean;
+}> = [
   { value: "public", label: "Public", description: "Listed in search, anyone can discover it." },
   { value: "unlisted", label: "Unlisted", description: "Hidden from search, anyone with the link can view." },
   { value: "private", label: "Private", description: "Only you can view. Requires sign-in.", requiresAuth: true },
-] as const;
+];
 
 export type Visibility = "public" | "unlisted" | "private";
 

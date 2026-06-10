@@ -14,39 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
-      pastes: {
+      paste_versions: {
         Row: {
           content: string
           created_at: string
-          expires_at: string | null
           id: string
-          is_listed: boolean
           language: string
-          password_hash: string | null
+          paste_id: string
           title: string
-          views: number
+          version: number
         }
         Insert: {
           content: string
           created_at?: string
-          expires_at?: string | null
-          id: string
-          is_listed?: boolean
-          language?: string
-          password_hash?: string | null
-          title?: string
-          views?: number
+          id?: string
+          language: string
+          paste_id: string
+          title: string
+          version: number
         }
         Update: {
           content?: string
           created_at?: string
+          id?: string
+          language?: string
+          paste_id?: string
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paste_versions_paste_id_fkey"
+            columns: ["paste_id"]
+            isOneToOne: false
+            referencedRelation: "pastes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pastes: {
+        Row: {
+          content: string
+          created_at: string
+          delete_token_hash: string | null
+          expires_at: string | null
+          id: string
+          is_listed: boolean
+          language: string
+          owner_id: string | null
+          password_hash: string | null
+          title: string
+          updated_at: string
+          views: number
+          visibility: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          delete_token_hash?: string | null
+          expires_at?: string | null
+          id: string
+          is_listed?: boolean
+          language?: string
+          owner_id?: string | null
+          password_hash?: string | null
+          title?: string
+          updated_at?: string
+          views?: number
+          visibility?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          delete_token_hash?: string | null
           expires_at?: string | null
           id?: string
           is_listed?: boolean
           language?: string
+          owner_id?: string | null
           password_hash?: string | null
           title?: string
+          updated_at?: string
           views?: number
+          visibility?: string
         }
         Relationships: []
       }

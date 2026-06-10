@@ -25,13 +25,31 @@ export const LANGUAGES = [
 ] as const;
 
 export const EXPIRATIONS = [
-  { value: "never", label: "Never" },
-  { value: "10m", label: "10 minutes" },
-  { value: "1h", label: "1 hour" },
-  { value: "1d", label: "1 day" },
-  { value: "1w", label: "1 week" },
-  { value: "1mo", label: "1 month" },
+  { value: "never", label: "Never", requiresAuth: true },
+  { value: "10m", label: "10 minutes", requiresAuth: false },
+  { value: "1h", label: "1 hour", requiresAuth: false },
+  { value: "1d", label: "1 day", requiresAuth: false },
+  { value: "1w", label: "1 week", requiresAuth: false },
+  { value: "1mo", label: "1 month", requiresAuth: false },
+  { value: "6mo", label: "6 months", requiresAuth: true },
+  { value: "1y", label: "1 year", requiresAuth: true },
 ] as const;
+
+export const VISIBILITIES: ReadonlyArray<{
+  value: "public" | "unlisted" | "private";
+  label: string;
+  description: string;
+  requiresAuth?: boolean;
+}> = [
+  { value: "public", label: "Public", description: "Listed in search, anyone can discover it." },
+  { value: "unlisted", label: "Unlisted", description: "Hidden from search, anyone with the link can view." },
+  { value: "private", label: "Private", description: "Only you can view. Requires sign-in.", requiresAuth: true },
+];
+
+export type Visibility = "public" | "unlisted" | "private";
+
+export const ANON_MAX_CHARS = 100_000;
+export const AUTH_MAX_CHARS = 1_000_000;
 
 export function expirationToDate(v: string): string | null {
   const now = Date.now();
@@ -41,6 +59,8 @@ export function expirationToDate(v: string): string | null {
     "1d": 24 * 60 * 60_000,
     "1w": 7 * 24 * 60 * 60_000,
     "1mo": 30 * 24 * 60 * 60_000,
+    "6mo": 182 * 24 * 60 * 60_000,
+    "1y": 365 * 24 * 60 * 60_000,
   };
   const ms = map[v];
   if (!ms) return null;

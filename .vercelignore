@@ -1,0 +1,5 @@
+.lovable
+node_modules
+.env*
+dist
+.cache

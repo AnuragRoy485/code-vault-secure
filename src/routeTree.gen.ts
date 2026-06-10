@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated/my'
+import { Route as AuthenticatedEditIdRouteImport } from './routes/_authenticated/edit.$id'
 import { Route as ApiPublicV1PasteRouteImport } from './routes/api/public/v1/paste'
 import { Route as ApiPublicV1PasteIdRouteImport } from './routes/api/public/v1/paste.$id'
 
@@ -26,6 +30,15 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -35,6 +48,16 @@ const PIdRoute = PIdRouteImport.update({
   id: '/p/$id',
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMyRoute = AuthenticatedMyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEditIdRoute = AuthenticatedEditIdRouteImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicV1PasteRoute = ApiPublicV1PasteRouteImport.update({
   id: '/api/public/v1/paste',
@@ -49,26 +72,36 @@ const ApiPublicV1PasteIdRoute = ApiPublicV1PasteIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/my': typeof AuthenticatedMyRoute
   '/p/$id': typeof PIdRoute
+  '/edit/$id': typeof AuthenticatedEditIdRoute
   '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
   '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/my': typeof AuthenticatedMyRoute
   '/p/$id': typeof PIdRoute
+  '/edit/$id': typeof AuthenticatedEditIdRoute
   '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
   '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/my': typeof AuthenticatedMyRoute
   '/p/$id': typeof PIdRoute
+  '/_authenticated/edit/$id': typeof AuthenticatedEditIdRoute
   '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
   '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
@@ -76,31 +109,43 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/search'
     | '/sitemap.xml'
+    | '/my'
     | '/p/$id'
+    | '/edit/$id'
     | '/api/public/v1/paste'
     | '/api/public/v1/paste/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/search'
     | '/sitemap.xml'
+    | '/my'
     | '/p/$id'
+    | '/edit/$id'
     | '/api/public/v1/paste'
     | '/api/public/v1/paste/$id'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/search'
     | '/sitemap.xml'
+    | '/_authenticated/my'
     | '/p/$id'
+    | '/_authenticated/edit/$id'
     | '/api/public/v1/paste'
     | '/api/public/v1/paste/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PIdRoute: typeof PIdRoute
@@ -123,6 +168,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -136,6 +195,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/p/$id'
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/my': {
+      id: '/_authenticated/my'
+      path: '/my'
+      fullPath: '/my'
+      preLoaderRoute: typeof AuthenticatedMyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/edit/$id': {
+      id: '/_authenticated/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/edit/$id'
+      preLoaderRoute: typeof AuthenticatedEditIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/v1/paste': {
       id: '/api/public/v1/paste'
@@ -154,6 +227,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedMyRoute: typeof AuthenticatedMyRoute
+  AuthenticatedEditIdRoute: typeof AuthenticatedEditIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedMyRoute: AuthenticatedMyRoute,
+  AuthenticatedEditIdRoute: AuthenticatedEditIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 interface ApiPublicV1PasteRouteChildren {
   ApiPublicV1PasteIdRoute: typeof ApiPublicV1PasteIdRoute
 }
@@ -167,6 +253,8 @@ const ApiPublicV1PasteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PIdRoute: PIdRoute,

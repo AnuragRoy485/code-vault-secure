@@ -3,11 +3,11 @@ import { z } from "zod";
 
 const Body = z.object({
   title: z.string().trim().max(200).optional(),
-  content: z.string().min(1).max(1_000_000),
+  content: z.string().min(1).max(100_000),
   language: z.string().trim().max(40).optional(),
-  expires_in_seconds: z.number().int().min(60).max(60 * 60 * 24 * 365).optional(),
+  expires_in_seconds: z.number().int().min(60).max(60 * 60 * 24 * 30).optional(),
   password: z.string().max(200).optional(),
-  is_listed: z.boolean().optional(),
+  visibility: z.enum(["public", "unlisted"]).optional(),
 });
 
 const cors = {
@@ -18,9 +18,7 @@ const cors = {
 
 async function sha256(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function makeSlug(len = 8): string {
@@ -30,6 +28,12 @@ function makeSlug(len = 8): string {
   let out = "";
   for (let i = 0; i < len; i++) out += chars[bytes[i] % chars.length];
   return out;
+}
+
+function makeToken(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export const Route = createFileRoute("/api/public/v1/paste")({
@@ -45,8 +49,10 @@ export const Route = createFileRoute("/api/public/v1/paste")({
             version: "1.0",
             endpoints: {
               create: { method: "POST", path: "/api/public/v1/paste" },
-              read: { method: "GET", path: "/api/public/v1/paste/{id}" },
+              read:   { method: "GET",  path: "/api/public/v1/paste/{id}" },
+              delete: { method: "DELETE", path: "/api/public/v1/paste/{id}", headers: { "x-delete-token": "<token>" } },
             },
+            anonymous_limits: { max_chars: 100000, max_expiration_seconds: 2592000 },
             example: {
               curl: `curl -X POST ${origin}/api/public/v1/paste -H 'Content-Type: application/json' -d '{"content":"console.log(1)","language":"javascript"}'`,
             },
@@ -57,17 +63,12 @@ export const Route = createFileRoute("/api/public/v1/paste")({
 
       POST: async ({ request }) => {
         let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
+        try { body = await request.json(); } catch {
           return Response.json({ error: "Invalid JSON" }, { status: 400, headers: cors });
         }
         const parsed = Body.safeParse(body);
         if (!parsed.success) {
-          return Response.json(
-            { error: "Validation failed", issues: parsed.error.issues },
-            { status: 400, headers: cors },
-          );
+          return Response.json({ error: "Validation failed", issues: parsed.error.issues }, { status: 400, headers: cors });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -75,6 +76,9 @@ export const Route = createFileRoute("/api/public/v1/paste")({
           ? new Date(Date.now() + parsed.data.expires_in_seconds * 1000).toISOString()
           : null;
         const password_hash = parsed.data.password ? await sha256(parsed.data.password) : null;
+        const visibility = parsed.data.visibility ?? "public";
+        const delete_token = makeToken();
+        const delete_token_hash = await sha256(delete_token);
 
         for (let i = 0; i < 5; i++) {
           const id = makeSlug(8);
@@ -86,15 +90,17 @@ export const Route = createFileRoute("/api/public/v1/paste")({
               content: parsed.data.content,
               language: parsed.data.language || "plaintext",
               password_hash,
-              is_listed: (parsed.data.is_listed ?? true) && !password_hash,
+              visibility,
+              is_listed: visibility === "public" && !password_hash,
               expires_at,
+              delete_token_hash,
             })
             .select("id")
             .single();
           if (!error && data) {
             const origin = new URL(request.url).origin;
             return Response.json(
-              { id: data.id, url: `${origin}/p/${data.id}` },
+              { id: data.id, url: `${origin}/p/${data.id}`, delete_token },
               { status: 201, headers: cors },
             );
           }

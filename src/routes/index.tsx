@@ -1,18 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  Lock,
-  Sparkles,
-  Timer,
-  Eye,
-  EyeOff,
-  Zap,
-  Shield,
-  Globe2,
-  Send,
+  Lock, Sparkles, Timer, Eye, EyeOff, Zap, Shield, Globe2, Send,
+  Copy, CheckCircle2, KeyRound, ExternalLink,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,30 +14,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { createPaste } from "@/lib/paste.functions";
-import { LANGUAGES, EXPIRATIONS, expirationToDate } from "@/lib/paste-constants";
+import {
+  LANGUAGES, EXPIRATIONS, VISIBILITIES,
+  expirationToDate, ANON_MAX_CHARS, AUTH_MAX_CHARS,
+} from "@/lib/paste-constants";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "snip.ink — share code snippets with style" },
-      {
-        name: "description",
-        content:
-          "Create a beautiful, secure code paste with syntax highlighting, expiration, and password protection.",
-      },
+      { name: "description", content: "Create a beautiful, secure code paste with syntax highlighting, expiration, password protection, and version history." },
       { property: "og:title", content: "snip.ink — share code snippets with style" },
-      {
-        property: "og:description",
-        content:
-          "Create a beautiful, secure code paste with syntax highlighting, expiration, and password protection.",
-      },
+      { property: "og:description", content: "Beautiful, secure code sharing with syntax highlighting, private pastes, and version history." },
     ],
   }),
   component: HomePage,
@@ -53,6 +38,8 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const navigate = useNavigate();
   const create = useServerFn(createPaste);
+  const { user, isAuthenticated } = useAuth();
+  const maxChars = isAuthenticated ? AUTH_MAX_CHARS : ANON_MAX_CHARS;
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -61,7 +48,9 @@ function HomePage() {
   const [password, setPassword] = useState("");
   const [usePassword, setUsePassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isListed, setIsListed] = useState(true);
+  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
+
+  const [created, setCreated] = useState<{ id: string; delete_token: string | null } | null>(null);
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -72,29 +61,35 @@ function HomePage() {
           language,
           password: usePassword && password ? password : null,
           expires_at: expirationToDate(expiration),
-          is_listed: isListed,
+          visibility,
         },
       });
     },
     onSuccess: (res) => {
       toast.success("Paste created");
-      navigate({ to: "/p/$id", params: { id: res.id } });
+      if (res.delete_token) {
+        setCreated(res);
+      } else {
+        navigate({ to: "/p/$id", params: { id: res.id } });
+      }
     },
-    onError: (err: Error) => {
-      toast.error(err.message || "Failed to create paste");
-    },
+    onError: (err: Error) => toast.error(err.message || "Failed to create paste"),
   });
+
+  if (created) {
+    return <CreatedSuccess id={created.id} token={created.delete_token!} onContinue={() => navigate({ to: "/p/$id", params: { id: created.id } })} />;
+  }
 
   return (
     <div className="relative">
       <div className="absolute inset-0 -z-10 bg-grid opacity-60" />
       <div className="absolute inset-0 -z-10 bg-radial-spot" />
 
-      <section className="mx-auto max-w-6xl px-4 pt-12 pb-6 sm:pt-20">
+      <section className="mx-auto max-w-6xl px-4 pt-10 pb-6 sm:pt-20">
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Built for developers who share code all day
+            {isAuthenticated ? `Welcome back, ${user?.user_metadata?.full_name || user?.email?.split("@")[0]}` : "Built for developers who share code all day"}
           </div>
           <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
             Share code,{" "}
@@ -110,15 +105,21 @@ function HomePage() {
             <span className="inline-flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-primary" /> Encrypted at rest</span>
             <span className="inline-flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5 text-primary" /> Global CDN</span>
           </div>
+          {!isAuthenticated && (
+            <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs">
+              <span className="text-muted-foreground">
+                <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link> to unlock private pastes, never-expire, 1M characters, edit history & a personal dashboard.
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
       <section className="mx-auto max-w-5xl px-4 pb-20">
         <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden">
-          {/* Toolbar */}
           <div className="flex flex-col gap-3 border-b border-border bg-surface/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 items-center gap-2">
-              <div className="flex gap-1.5">
+            <div className="flex flex-1 items-center gap-2 min-w-0">
+              <div className="flex gap-1.5 shrink-0">
                 <span className="h-3 w-3 rounded-full bg-[oklch(0.66_0.21_25)]"></span>
                 <span className="h-3 w-3 rounded-full bg-[oklch(0.78_0.16_85)]"></span>
                 <span className="h-3 w-3 rounded-full bg-[oklch(0.72_0.16_145)]"></span>
@@ -128,50 +129,40 @@ function HomePage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Untitled paste"
                 maxLength={200}
-                className="border-0 bg-transparent font-mono text-sm focus-visible:ring-0 shadow-none px-2"
+                className="border-0 bg-transparent font-mono text-sm focus-visible:ring-0 shadow-none px-2 min-w-0"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-[160px] h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANGUAGES.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>
-                      {l.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Editor */}
-          <div className="relative">
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="// Paste your code here…"
-              spellCheck={false}
-              className="min-h-[360px] resize-y rounded-none border-0 bg-transparent font-mono text-sm leading-6 focus-visible:ring-0 shadow-none p-5"
-            />
-          </div>
+          <Textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="// Paste your code here…"
+            spellCheck={false}
+            className="min-h-[320px] sm:min-h-[400px] resize-y rounded-none border-0 bg-transparent font-mono text-sm leading-6 focus-visible:ring-0 shadow-none p-4 sm:p-5"
+          />
 
-          {/* Options */}
           <div className="grid gap-4 border-t border-border bg-surface/40 p-4 sm:p-5 md:grid-cols-3">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
                 <Timer className="h-3.5 w-3.5" /> Expiration
               </Label>
               <Select value={expiration} onValueChange={setExpiration}>
-                <SelectTrigger className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {EXPIRATIONS.map((e) => (
-                    <SelectItem key={e.value} value={e.value}>
-                      {e.label}
+                    <SelectItem key={e.value} value={e.value} disabled={e.requiresAuth && !isAuthenticated}>
+                      {e.label}{e.requiresAuth && !isAuthenticated ? " (sign in)" : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -179,10 +170,27 @@ function HomePage() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                <Globe2 className="h-3.5 w-3.5" /> Visibility
+              </Label>
+              <Select value={visibility} onValueChange={(v) => setVisibility(v as "public" | "unlisted" | "private")}>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {VISIBILITIES.map((v) => (
+                    <SelectItem key={v.value} value={v.value} disabled={v.requiresAuth && !isAuthenticated}>
+                      {v.label}{v.requiresAuth && !isAuthenticated ? " (sign in)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground leading-4">
+                {VISIBILITIES.find((v) => v.value === visibility)?.description}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5" /> Password
-                </span>
+                <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Password</span>
                 <Switch checked={usePassword} onCheckedChange={setUsePassword} />
               </Label>
               <div className="relative">
@@ -206,35 +214,16 @@ function HomePage() {
                 )}
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <Label className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Globe2 className="h-3.5 w-3.5" /> Visibility
-                </span>
-                <Switch
-                  checked={isListed && !usePassword}
-                  disabled={usePassword}
-                  onCheckedChange={setIsListed}
-                />
-              </Label>
-              <p className="text-xs text-muted-foreground leading-5">
-                {usePassword
-                  ? "Password-protected pastes are unlisted automatically."
-                  : isListed
-                  ? "Discoverable in public search."
-                  : "Unlisted — only people with the link."}
-              </p>
-            </div>
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-border bg-surface/60 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div className="text-xs text-muted-foreground">
-              {content.length.toLocaleString()} chars · max 1,000,000
+              {content.length.toLocaleString()} chars · max {maxChars.toLocaleString()}
+              {content.length > maxChars && <span className="ml-2 text-destructive">over limit</span>}
             </div>
             <Button
               size="lg"
-              disabled={!content.trim() || mut.isPending}
+              disabled={!content.trim() || content.length > maxChars || mut.isPending}
               onClick={() => mut.mutate()}
               className="gap-2 shadow-[var(--shadow-glow)]"
             >
@@ -244,6 +233,64 @@ function HomePage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function CreatedSuccess({ id, token, onContinue }: { id: string; token: string; onContinue: () => void }) {
+  const url = typeof window !== "undefined" ? `${window.location.origin}/p/${id}` : `/p/${id}`;
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:py-20">
+      <div className="rounded-2xl border border-primary/30 bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/15 text-primary">
+            <CheckCircle2 className="h-5 w-5" />
+          </div>
+          <h1 className="font-display text-xl sm:text-2xl font-bold">Your paste is live</h1>
+        </div>
+
+        <div className="mt-6 space-y-1.5">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Share URL</Label>
+          <div className="flex gap-2">
+            <Input readOnly value={url} className="font-mono text-xs" />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => { navigator.clipboard.writeText(url); toast.success("URL copied"); }}
+              aria-label="Copy URL"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
+            <KeyRound className="h-4 w-4" /> Save this delete token
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            This is shown <strong>once</strong>. Without it, this anonymous paste can't be deleted. Sign in next time to manage pastes from your dashboard.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Input readOnly value={token} className="font-mono text-xs" />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => { navigator.clipboard.writeText(token); toast.success("Token copied"); }}
+              aria-label="Copy token"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+          <Link to="/auth"><Button variant="outline">Create an account</Button></Link>
+          <Button className="gap-1.5" onClick={onContinue}>
+            <ExternalLink className="h-4 w-4" /> Open paste
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

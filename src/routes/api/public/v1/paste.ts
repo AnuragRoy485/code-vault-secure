@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const Body = z.object({
   title: z.string().trim().max(200).optional(),
-  content: z.string().min(1).max(500_000),
+  content: z.string().min(1).max(1_000_000),
   language: z.string().trim().max(40).optional(),
   expires_in_seconds: z.number().int().min(60).max(60 * 60 * 24 * 365).optional(),
   password: z.string().max(200).optional(),

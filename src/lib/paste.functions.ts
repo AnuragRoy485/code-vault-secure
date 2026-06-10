@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const CreateInput = z.object({
   title: z.string().trim().max(200).optional(),
-  content: z.string().min(1, "Content required").max(500_000),
+  content: z.string().min(1, "Content required").max(1_000_000),
   language: z.string().trim().max(40).default("plaintext"),
   password: z.string().max(200).optional().nullable(),
   expires_at: z.string().datetime().nullable().optional(),

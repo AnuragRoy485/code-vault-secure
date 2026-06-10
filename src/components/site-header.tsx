@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Moon, Sun, Search, Plus, Code2, Github } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/user-menu";
 
 export function SiteHeader() {
   const { theme, toggle } = useTheme();
@@ -22,15 +23,15 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-1 sm:gap-1.5">
           <Link to="/search">
-            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3">
+            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3" aria-label="Browse pastes">
               <Search className="h-4 w-4" />
-              <span className="hidden sm:inline">Browse</span>
+              <span className="hidden md:inline">Browse</span>
             </Button>
           </Link>
           <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3">
+            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3" aria-label="New paste">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New paste</span>
+              <span className="hidden md:inline">New</span>
             </Button>
           </Link>
           <a
@@ -45,8 +46,7 @@ export function SiteHeader() {
               className="gap-1.5 h-9 px-2 sm:px-3 border-primary/30 hover:border-primary/60 hover:bg-primary/10"
             >
               <Github className="h-4 w-4" />
-              <span className="hidden md:inline">Follow on GitHub</span>
-              <span className="hidden sm:inline md:hidden">Follow</span>
+              <span className="hidden lg:inline">Follow on GitHub</span>
             </Button>
           </a>
           <Button
@@ -58,6 +58,7 @@ export function SiteHeader() {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
+          <UserMenu />
         </nav>
       </div>
     </header>

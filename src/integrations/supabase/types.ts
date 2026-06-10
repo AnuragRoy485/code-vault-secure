@@ -14,13 +14,49 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pastes: {
+        Row: {
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_listed: boolean
+          language: string
+          password_hash: string | null
+          title: string
+          views: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id: string
+          is_listed?: boolean
+          language?: string
+          password_hash?: string | null
+          title?: string
+          views?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_listed?: boolean
+          language?: string
+          password_hash?: string | null
+          title?: string
+          views?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never

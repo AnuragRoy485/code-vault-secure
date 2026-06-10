@@ -230,7 +230,7 @@ function HomePage() {
 
           <div className="flex flex-col-reverse gap-3 border-t border-border bg-surface/60 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div className="text-xs text-muted-foreground">
-              {content.length.toLocaleString()} chars · max 500,000
+              {content.length.toLocaleString()} chars · max 1,000,000
             </div>
             <Button
               size="lg"

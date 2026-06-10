@@ -13,7 +13,7 @@ async function sha256(s: string): Promise<string> {
     .join("");
 }
 
-export const Route = createFileRoute("/api/v1/paste/$id")({
+export const Route = createFileRoute("/api/public/v1/paste/$id")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: cors }),

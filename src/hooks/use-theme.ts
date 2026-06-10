@@ -8,16 +8,20 @@ function applyTheme(t: Theme) {
   const root = document.documentElement;
   if (t === "dark") root.classList.add("dark");
   else root.classList.remove("dark");
+  try {
+    root.style.colorScheme = t;
+  } catch {}
 }
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const stored = (typeof localStorage !== "undefined" && localStorage.getItem(KEY)) as Theme | null;
-    const prefersDark =
-      typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    const initial: Theme = stored ?? (prefersDark ? "dark" : "dark");
+    let initial: Theme = "dark";
+    try {
+      const stored = localStorage.getItem(KEY) as Theme | null;
+      if (stored === "light" || stored === "dark") initial = stored;
+    } catch {}
     setTheme(initial);
     applyTheme(initial);
   }, []);

@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "A modern, secure pastebin for developers. Share code with syntax highlighting, expiration, and passwords — fast and ad-free.",
       },
-      { property: "og:title", content: "snip.ink — share code with elegance" },
+      { property: "og:title", content: "snip.ink — beautifully share code snippets" },
       {
         property: "og:description",
         content:
@@ -94,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "snip.ink — beautifully share code snippets" },
+      { name: "description", content: "Securely share and manage code snippets with expiration, passwords, and version tracking." },
+      { property: "og:description", content: "Securely share and manage code snippets with expiration, passwords, and version tracking." },
+      { name: "twitter:description", content: "Securely share and manage code snippets with expiration, passwords, and version tracking." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/10f94357-6747-44f7-abab-cdcbecd19e4b/id-preview-dbb8d2ba--eace0070-af35-4936-ac17-f7736553d6c3.lovable.app-1781094286842.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/10f94357-6747-44f7-abab-cdcbecd19e4b/id-preview-dbb8d2ba--eace0070-af35-4936-ac17-f7736553d6c3.lovable.app-1781094286842.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

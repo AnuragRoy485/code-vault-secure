@@ -32,7 +32,7 @@ function makeSlug(len = 8): string {
   return out;
 }
 
-export const Route = createFileRoute("/api/v1/paste")({
+export const Route = createFileRoute("/api/public/v1/paste")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: cors }),

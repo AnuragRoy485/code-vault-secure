@@ -13,8 +13,8 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PIdRouteImport } from './routes/p.$id'
-import { Route as ApiV1PasteRouteImport } from './routes/api/v1/paste'
-import { Route as ApiV1PasteIdRouteImport } from './routes/api/v1/paste.$id'
+import { Route as ApiPublicV1PasteRouteImport } from './routes/api/public/v1/paste'
+import { Route as ApiPublicV1PasteIdRouteImport } from './routes/api/public/v1/paste.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -36,15 +36,15 @@ const PIdRoute = PIdRouteImport.update({
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1PasteRoute = ApiV1PasteRouteImport.update({
-  id: '/api/v1/paste',
-  path: '/api/v1/paste',
+const ApiPublicV1PasteRoute = ApiPublicV1PasteRouteImport.update({
+  id: '/api/public/v1/paste',
+  path: '/api/public/v1/paste',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1PasteIdRoute = ApiV1PasteIdRouteImport.update({
+const ApiPublicV1PasteIdRoute = ApiPublicV1PasteIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => ApiV1PasteRoute,
+  getParentRoute: () => ApiPublicV1PasteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -52,16 +52,16 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
-  '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
-  '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
+  '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
+  '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
-  '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
-  '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
+  '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
+  '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +69,8 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
-  '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
-  '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
+  '/api/public/v1/paste': typeof ApiPublicV1PasteRouteWithChildren
+  '/api/public/v1/paste/$id': typeof ApiPublicV1PasteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +79,24 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/p/$id'
-    | '/api/v1/paste'
-    | '/api/v1/paste/$id'
+    | '/api/public/v1/paste'
+    | '/api/public/v1/paste/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/search'
     | '/sitemap.xml'
     | '/p/$id'
-    | '/api/v1/paste'
-    | '/api/v1/paste/$id'
+    | '/api/public/v1/paste'
+    | '/api/public/v1/paste/$id'
   id:
     | '__root__'
     | '/'
     | '/search'
     | '/sitemap.xml'
     | '/p/$id'
-    | '/api/v1/paste'
-    | '/api/v1/paste/$id'
+    | '/api/public/v1/paste'
+    | '/api/public/v1/paste/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,7 +104,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PIdRoute: typeof PIdRoute
-  ApiV1PasteRoute: typeof ApiV1PasteRouteWithChildren
+  ApiPublicV1PasteRoute: typeof ApiPublicV1PasteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -137,41 +137,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/paste': {
-      id: '/api/v1/paste'
-      path: '/api/v1/paste'
-      fullPath: '/api/v1/paste'
-      preLoaderRoute: typeof ApiV1PasteRouteImport
+    '/api/public/v1/paste': {
+      id: '/api/public/v1/paste'
+      path: '/api/public/v1/paste'
+      fullPath: '/api/public/v1/paste'
+      preLoaderRoute: typeof ApiPublicV1PasteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/paste/$id': {
-      id: '/api/v1/paste/$id'
+    '/api/public/v1/paste/$id': {
+      id: '/api/public/v1/paste/$id'
       path: '/$id'
-      fullPath: '/api/v1/paste/$id'
-      preLoaderRoute: typeof ApiV1PasteIdRouteImport
-      parentRoute: typeof ApiV1PasteRoute
+      fullPath: '/api/public/v1/paste/$id'
+      preLoaderRoute: typeof ApiPublicV1PasteIdRouteImport
+      parentRoute: typeof ApiPublicV1PasteRoute
     }
   }
 }
 
-interface ApiV1PasteRouteChildren {
-  ApiV1PasteIdRoute: typeof ApiV1PasteIdRoute
+interface ApiPublicV1PasteRouteChildren {
+  ApiPublicV1PasteIdRoute: typeof ApiPublicV1PasteIdRoute
 }
 
-const ApiV1PasteRouteChildren: ApiV1PasteRouteChildren = {
-  ApiV1PasteIdRoute: ApiV1PasteIdRoute,
+const ApiPublicV1PasteRouteChildren: ApiPublicV1PasteRouteChildren = {
+  ApiPublicV1PasteIdRoute: ApiPublicV1PasteIdRoute,
 }
 
-const ApiV1PasteRouteWithChildren = ApiV1PasteRoute._addFileChildren(
-  ApiV1PasteRouteChildren,
-)
+const ApiPublicV1PasteRouteWithChildren =
+  ApiPublicV1PasteRoute._addFileChildren(ApiPublicV1PasteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PIdRoute: PIdRoute,
-  ApiV1PasteRoute: ApiV1PasteRouteWithChildren,
+  ApiPublicV1PasteRoute: ApiPublicV1PasteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

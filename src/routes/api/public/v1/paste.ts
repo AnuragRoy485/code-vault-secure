@@ -44,11 +44,11 @@ export const Route = createFileRoute("/api/public/v1/paste")({
             name: "snip.ink public API",
             version: "1.0",
             endpoints: {
-              create: { method: "POST", path: "/api/v1/paste" },
-              read: { method: "GET", path: "/api/v1/paste/{id}" },
+              create: { method: "POST", path: "/api/public/v1/paste" },
+              read: { method: "GET", path: "/api/public/v1/paste/{id}" },
             },
             example: {
-              curl: `curl -X POST ${origin}/api/v1/paste -H 'Content-Type: application/json' -d '{"content":"console.log(1)","language":"javascript"}'`,
+              curl: `curl -X POST ${origin}/api/public/v1/paste -H 'Content-Type: application/json' -d '{"content":"console.log(1)","language":"javascript"}'`,
             },
           },
           { headers: cors },

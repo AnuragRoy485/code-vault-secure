@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as ApiV1PasteRouteImport } from './routes/api/v1/paste'
 import { Route as ApiV1PasteIdRouteImport } from './routes/api/v1/paste.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -44,6 +50,7 @@ const ApiV1PasteIdRoute = ApiV1PasteIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
   '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
   '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
   '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
   '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
@@ -59,19 +67,33 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/p/$id': typeof PIdRoute
   '/api/v1/paste': typeof ApiV1PasteRouteWithChildren
   '/api/v1/paste/$id': typeof ApiV1PasteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search' | '/p/$id' | '/api/v1/paste' | '/api/v1/paste/$id'
+  fullPaths:
+    | '/'
+    | '/search'
+    | '/sitemap.xml'
+    | '/p/$id'
+    | '/api/v1/paste'
+    | '/api/v1/paste/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/p/$id' | '/api/v1/paste' | '/api/v1/paste/$id'
+  to:
+    | '/'
+    | '/search'
+    | '/sitemap.xml'
+    | '/p/$id'
+    | '/api/v1/paste'
+    | '/api/v1/paste/$id'
   id:
     | '__root__'
     | '/'
     | '/search'
+    | '/sitemap.xml'
     | '/p/$id'
     | '/api/v1/paste'
     | '/api/v1/paste/$id'
@@ -80,12 +102,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PIdRoute: typeof PIdRoute
   ApiV1PasteRoute: typeof ApiV1PasteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -139,9 +169,20 @@ const ApiV1PasteRouteWithChildren = ApiV1PasteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   PIdRoute: PIdRoute,
   ApiV1PasteRoute: ApiV1PasteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

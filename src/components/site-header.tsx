@@ -7,40 +7,46 @@ export function SiteHeader() {
   const { theme, toggle } = useTheme();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="group flex items-center gap-2.5">
-          <div className="relative grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-[0_8px_24px_-12px_var(--primary)]">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-3 sm:px-4">
+        <Link to="/" className="group flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="relative grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-[0_8px_24px_-12px_var(--primary)]">
             <Code2 className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight">snip.ink</div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="leading-tight min-w-0">
+            <div className="font-display text-base sm:text-lg font-bold tracking-tight truncate">snip.ink</div>
+            <div className="hidden sm:block text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               share code, fast
             </div>
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1.5">
+        <nav className="flex items-center gap-1 sm:gap-1.5">
           <Link to="/search">
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3">
               <Search className="h-4 w-4" />
               <span className="hidden sm:inline">Browse</span>
             </Button>
           </Link>
           <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 h-9 px-2 sm:px-3">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New paste</span>
             </Button>
           </Link>
           <a
-            href="https://github.com"
+            href="https://github.com/AnuragRoy485"
             target="_blank"
             rel="noreferrer noopener"
-            aria-label="GitHub"
+            aria-label="Follow Anurag Roy on GitHub"
           >
-            <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-9 px-2 sm:px-3 border-primary/30 hover:border-primary/60 hover:bg-primary/10"
+            >
               <Github className="h-4 w-4" />
+              <span className="hidden md:inline">Follow on GitHub</span>
+              <span className="hidden sm:inline md:hidden">Follow</span>
             </Button>
           </a>
           <Button

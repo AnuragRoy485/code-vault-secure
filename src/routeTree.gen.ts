@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as ApiV1PasteRouteImport } from './routes/api/v1/paste'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -28,35 +29,44 @@ const PIdRoute = PIdRouteImport.update({
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1PasteRoute = ApiV1PasteRouteImport.update({
+  id: '/api/v1/paste',
+  path: '/api/v1/paste',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/p/$id': typeof PIdRoute
+  '/api/v1/paste': typeof ApiV1PasteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/p/$id': typeof PIdRoute
+  '/api/v1/paste': typeof ApiV1PasteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/p/$id': typeof PIdRoute
+  '/api/v1/paste': typeof ApiV1PasteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search' | '/p/$id'
+  fullPaths: '/' | '/search' | '/p/$id' | '/api/v1/paste'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/p/$id'
-  id: '__root__' | '/' | '/search' | '/p/$id'
+  to: '/' | '/search' | '/p/$id' | '/api/v1/paste'
+  id: '__root__' | '/' | '/search' | '/p/$id' | '/api/v1/paste'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SearchRoute: typeof SearchRoute
   PIdRoute: typeof PIdRoute
+  ApiV1PasteRoute: typeof ApiV1PasteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/paste': {
+      id: '/api/v1/paste'
+      path: '/api/v1/paste'
+      fullPath: '/api/v1/paste'
+      preLoaderRoute: typeof ApiV1PasteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SearchRoute: SearchRoute,
   PIdRoute: PIdRoute,
+  ApiV1PasteRoute: ApiV1PasteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

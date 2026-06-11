@@ -135,3 +135,15 @@
 .hljs-variable, .hljs-name { color: oklch(0.86 0.06 90); }
 .hljs-tag, .hljs-meta { color: oklch(0.7 0.15 320); }
 .hljs-type, .hljs-class { color: oklch(0.78 0.13 195); }
+
+/* Hide Lovable edit badge */
+#lovable-badge,
+[id^="lovable-badge"],
+a[href*="lovable.dev"][class*="badge" i],
+iframe[src*="lovable.dev/badge" i],
+div[class*="lovable-badge" i] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

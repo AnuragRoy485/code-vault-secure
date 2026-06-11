@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/auth")({
@@ -34,18 +33,6 @@ function AuthPage() {
     if (!loading && user) navigate({ to: "/my" });
   }, [user, loading, navigate]);
 
-  async function withGoogle() {
-    setBusy(true);
-    try {
-      const res = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/my",
-      });
-      if (res.error) toast.error(res.error.message || "Google sign-in failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function withEmail(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -56,7 +43,7 @@ function AuthPage() {
         toast.success("Signed in");
         navigate({ to: "/my" });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -65,7 +52,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created — check your email if confirmation is required.");
+        // Auto sign-in after signup (email confirmation disabled)
+        if (!data.session) {
+          const { error: siErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (siErr) throw siErr;
+        }
+        toast.success("Account created — you're signed in");
+        navigate({ to: "/my" });
       }
     } catch (err) {
       toast.error((err as Error).message || "Auth failed");

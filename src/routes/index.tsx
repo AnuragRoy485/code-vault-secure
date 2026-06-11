@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   Lock, Sparkles, Timer, Eye, EyeOff, Zap, Shield, Globe2, Send,
-  Copy, CheckCircle2, KeyRound, ExternalLink,
+  Copy, CheckCircle2, KeyRound, ExternalLink, Download,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

@@ -82,19 +82,8 @@ function AuthPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-6 w-full gap-2 h-11"
-          disabled={busy}
-          onClick={withGoogle}
-        >
-          <GoogleIcon /> Continue with Google
-        </Button>
+        <div className="mt-6" />
 
-        <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> or <div className="h-px flex-1 bg-border" />
-        </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")}>
           <TabsList className="grid w-full grid-cols-2">

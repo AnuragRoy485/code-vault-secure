@@ -239,6 +239,26 @@ function HomePage() {
 
 function CreatedSuccess({ id, token, onContinue }: { id: string; token: string; onContinue: () => void }) {
   const url = typeof window !== "undefined" ? `${window.location.origin}/p/${id}` : `/p/${id}`;
+  const [saved, setSaved] = useState(false);
+
+  function downloadToken() {
+    const blob = new Blob(
+      [`snip.ink delete token\n\nPaste URL: ${url}\nDelete token: ${token}\n\nKeep this safe — without it, this anonymous paste cannot be deleted.\n`],
+      { type: "text/plain" },
+    );
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `snipink-${id}-delete-token.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success("Token downloaded");
+  }
+
+  function copyBoth() {
+    navigator.clipboard.writeText(`URL: ${url}\nDelete token: ${token}`);
+    toast.success("URL + token copied");
+  }
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:py-20">
       <div className="rounded-2xl border border-primary/30 bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]">
@@ -264,15 +284,15 @@ function CreatedSuccess({ id, token, onContinue }: { id: string; token: string; 
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
-            <KeyRound className="h-4 w-4" /> Save this delete token
+        <div className="mt-5 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
+            <KeyRound className="h-4 w-4" /> Save this delete token — shown only once
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            This is shown <strong>once</strong>. Without it, this anonymous paste can't be deleted. Sign in next time to manage pastes from your dashboard.
+            Without this token, this anonymous paste <strong>cannot</strong> be deleted. Copy it, download it, or sign in next time to manage pastes from your dashboard.
           </p>
           <div className="mt-3 flex gap-2">
-            <Input readOnly value={token} className="font-mono text-xs" />
+            <Input readOnly value={token} className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
             <Button
               variant="outline"
               size="icon"
@@ -282,11 +302,28 @@ function CreatedSuccess({ id, token, onContinue }: { id: string; token: string; 
               <Copy className="h-4 w-4" />
             </Button>
           </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={copyBoth} className="gap-1.5">
+              <Copy className="h-3.5 w-3.5" /> Copy URL + token
+            </Button>
+            <Button variant="secondary" size="sm" onClick={downloadToken} className="gap-1.5">
+              <Download className="h-3.5 w-3.5" /> Download .txt
+            </Button>
+          </div>
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={saved}
+              onChange={(e) => setSaved(e.target.checked)}
+              className="h-4 w-4 rounded border-amber-500/50 accent-amber-500"
+            />
+            <span>I've saved my delete token somewhere safe</span>
+          </label>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
           <Link to="/auth"><Button variant="outline">Create an account</Button></Link>
-          <Button className="gap-1.5" onClick={onContinue}>
+          <Button className="gap-1.5" onClick={onContinue} disabled={!saved}>
             <ExternalLink className="h-4 w-4" /> Open paste
           </Button>
         </div>

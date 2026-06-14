@@ -339,7 +339,7 @@ export const listMyPastes = createServerFn({ method: "POST" })
       .limit(200);
     if (data.q) q = q.ilike("title", `%${data.q.replace(/[%_]/g, "")}%`);
     const { data: rows, error } = await q;
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[listMyPastes] db error:", error.message); throw new Error("Internal server error"); }
     return { results: rows ?? [] };
   });
 

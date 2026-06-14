@@ -244,7 +244,7 @@ export const searchPastes = createServerFn({ method: "POST" })
       query = query.ilike("title", `%${data.q.replace(/[%_]/g, "")}%`);
     }
     const { data: rows, error } = await query;
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[searchPastes] db error:", error.message); throw new Error("Internal server error"); }
     return { results: rows ?? [] };
   });
 

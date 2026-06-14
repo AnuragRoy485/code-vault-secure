@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      anon_paste_events: {
+        Row: {
+          content_hash: string
+          created_at: string
+          id: number
+          ip: string
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          id?: number
+          ip: string
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          id?: number
+          ip?: string
+        }
+        Relationships: []
+      }
       paste_versions: {
         Row: {
           content: string

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const Body = z.object({
@@ -72,6 +73,31 @@ export const Route = createFileRoute("/api/public/v1/paste")({
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        const ip = (getRequestIP({ xForwardedFor: true }) ?? "unknown").slice(0, 64);
+        const content_hash = await sha256(parsed.data.content);
+
+        // Anti-abuse: duplicate content from same IP in last 24h, plus per-IP rate windows
+        const now = Date.now();
+        const oneMin = new Date(now - 60_000).toISOString();
+        const oneHour = new Date(now - 60 * 60_000).toISOString();
+        const oneDay = new Date(now - 24 * 60 * 60_000).toISOString();
+
+        const { count: dupCount } = await supabaseAdmin
+          .from("anon_paste_events")
+          .select("id", { count: "exact", head: true })
+          .eq("ip", ip).eq("content_hash", content_hash).gte("created_at", oneDay);
+        if ((dupCount ?? 0) > 0) {
+          return Response.json({ error: "Duplicate content. This exact paste was already created from your IP recently." }, { status: 429, headers: cors });
+        }
+        const [{ count: m }, { count: h }, { count: d }] = await Promise.all([
+          supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneMin),
+          supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneHour),
+          supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneDay),
+        ]);
+        if ((m ?? 0) >= 5)   return Response.json({ error: "Rate limit: max 5 pastes/minute for guests." }, { status: 429, headers: cors });
+        if ((h ?? 0) >= 30)  return Response.json({ error: "Rate limit: max 30 pastes/hour for guests." }, { status: 429, headers: cors });
+        if ((d ?? 0) >= 100) return Response.json({ error: "Rate limit: max 100 pastes/day for guests." }, { status: 429, headers: cors });
+
         const expires_at = parsed.data.expires_in_seconds
           ? new Date(Date.now() + parsed.data.expires_in_seconds * 1000).toISOString()
           : null;
@@ -98,6 +124,10 @@ export const Route = createFileRoute("/api/public/v1/paste")({
             .select("id")
             .single();
           if (!error && data) {
+            void supabaseAdmin
+              .from("anon_paste_events")
+              .insert({ ip, content_hash })
+              .then(() => undefined);
             const origin = new URL(request.url).origin;
             return Response.json(
               { id: data.id, url: `${origin}/p/${data.id}`, delete_token },

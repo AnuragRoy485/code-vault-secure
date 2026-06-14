@@ -69,7 +69,7 @@ export const Route = createFileRoute("/api/public/v1/paste/$id")({
           return Response.json({ error: "Invalid token" }, { status: 403, headers: cors });
         }
         const { error: delErr } = await supabaseAdmin.from("pastes").delete().eq("id", id);
-        if (delErr) return Response.json({ error: delErr.message }, { status: 500, headers: cors });
+        if (delErr) { console.error("[api paste DELETE] db error:", delErr.message); return Response.json({ error: "Internal server error" }, { status: 500, headers: cors }); }
         return Response.json({ ok: true }, { headers: cors });
       },
     },

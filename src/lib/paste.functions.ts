@@ -258,7 +258,7 @@ export const deletePaste = createServerFn({ method: "POST" })
       .select("id,owner_id,delete_token_hash")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[deletePaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) throw new Error("Paste not found");
 
     let allowed = false;
@@ -270,7 +270,7 @@ export const deletePaste = createServerFn({ method: "POST" })
     if (!allowed) throw new Error("You don't have permission to delete this paste");
 
     const { error: delErr } = await supabaseAdmin.from("pastes").delete().eq("id", data.id);
-    if (delErr) throw new Error(delErr.message);
+    if (delErr) { console.error("[deletePaste] db error:", delErr.message); throw new Error("Internal server error"); }
     return { ok: true };
   });
 

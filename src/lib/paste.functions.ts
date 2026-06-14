@@ -283,10 +283,10 @@ export const updatePaste = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("pastes")
-      .select("id,owner_id,title,content,language")
+      .select("id,owner_id,title,content,language,password_hash")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[updatePaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) throw new Error("Paste not found");
     if (row.owner_id !== userId) throw new Error("Not your paste");
 
@@ -315,11 +315,11 @@ export const updatePaste = createServerFn({ method: "POST" })
         content: data.content,
         language: data.language,
         visibility: data.visibility,
-        is_listed: data.visibility === "public",
+        is_listed: data.visibility === "public" && !row.password_hash,
         expires_at: data.expires_at ?? null,
       })
       .eq("id", data.id);
-    if (updErr) throw new Error(updErr.message);
+    if (updErr) { console.error("[updatePaste] db error:", updErr.message); throw new Error("Internal server error"); }
     return { ok: true, version: nextVersion };
   });
 

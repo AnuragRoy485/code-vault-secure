@@ -135,7 +135,8 @@ export const Route = createFileRoute("/api/public/v1/paste")({
             );
           }
           if (error && !error.message.includes("duplicate")) {
-            return Response.json({ error: error.message }, { status: 500, headers: cors });
+            console.error("[api paste POST] db error:", error.message);
+            return Response.json({ error: "Internal server error" }, { status: 500, headers: cors });
           }
         }
         return Response.json({ error: "Could not allocate id" }, { status: 500, headers: cors });

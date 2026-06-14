@@ -76,9 +76,7 @@ async function getOptionalUserId(): Promise<string | null> {
 }
 
 async function enforceAnonLimits(
-  supabaseAdmin: Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").supabaseAdmin.from>> extends never
-    ? never
-    : import("@supabase/supabase-js").SupabaseClient,
+  supabaseAdmin: any,
   ip: string,
   content_hash: string,
 ): Promise<void> {

@@ -178,7 +178,7 @@ export const getPaste = createServerFn({ method: "POST" })
       .select("id,title,language,content,password_hash,expires_at,created_at,updated_at,views,visibility,owner_id")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[getPaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) return { status: "not_found" as const };
 
     if (row.visibility === "private" && row.owner_id !== userId) {

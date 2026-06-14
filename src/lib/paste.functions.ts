@@ -162,7 +162,8 @@ export const createPaste = createServerFn({ method: "POST" })
         return { id: row.id, delete_token };
       }
       if (error && !error.message.includes("duplicate")) {
-        throw new Error(error.message);
+        console.error("[createPaste] db error:", error.message);
+        throw new Error("Internal server error");
       }
     }
     throw new Error("Could not allocate a unique paste id");
@@ -178,7 +179,7 @@ export const getPaste = createServerFn({ method: "POST" })
       .select("id,title,language,content,password_hash,expires_at,created_at,updated_at,views,visibility,owner_id")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[getPaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) return { status: "not_found" as const };
 
     if (row.visibility === "private" && row.owner_id !== userId) {
@@ -235,6 +236,7 @@ export const searchPastes = createServerFn({ method: "POST" })
       .from("pastes")
       .select("id,title,language,created_at,expires_at,views")
       .eq("visibility", "public")
+      .eq("is_listed", true)
       .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order("created_at", { ascending: false })
       .limit(data.limit);
@@ -243,7 +245,7 @@ export const searchPastes = createServerFn({ method: "POST" })
       query = query.ilike("title", `%${data.q.replace(/[%_]/g, "")}%`);
     }
     const { data: rows, error } = await query;
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[searchPastes] db error:", error.message); throw new Error("Internal server error"); }
     return { results: rows ?? [] };
   });
 
@@ -257,7 +259,7 @@ export const deletePaste = createServerFn({ method: "POST" })
       .select("id,owner_id,delete_token_hash")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[deletePaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) throw new Error("Paste not found");
 
     let allowed = false;
@@ -269,7 +271,7 @@ export const deletePaste = createServerFn({ method: "POST" })
     if (!allowed) throw new Error("You don't have permission to delete this paste");
 
     const { error: delErr } = await supabaseAdmin.from("pastes").delete().eq("id", data.id);
-    if (delErr) throw new Error(delErr.message);
+    if (delErr) { console.error("[deletePaste] db error:", delErr.message); throw new Error("Internal server error"); }
     return { ok: true };
   });
 
@@ -282,10 +284,10 @@ export const updatePaste = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("pastes")
-      .select("id,owner_id,title,content,language")
+      .select("id,owner_id,title,content,language,password_hash")
       .eq("id", data.id)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[updatePaste] db error:", error.message); throw new Error("Internal server error"); }
     if (!row) throw new Error("Paste not found");
     if (row.owner_id !== userId) throw new Error("Not your paste");
 
@@ -314,11 +316,11 @@ export const updatePaste = createServerFn({ method: "POST" })
         content: data.content,
         language: data.language,
         visibility: data.visibility,
-        is_listed: data.visibility === "public",
+        is_listed: data.visibility === "public" && !row.password_hash,
         expires_at: data.expires_at ?? null,
       })
       .eq("id", data.id);
-    if (updErr) throw new Error(updErr.message);
+    if (updErr) { console.error("[updatePaste] db error:", updErr.message); throw new Error("Internal server error"); }
     return { ok: true, version: nextVersion };
   });
 
@@ -337,7 +339,7 @@ export const listMyPastes = createServerFn({ method: "POST" })
       .limit(200);
     if (data.q) q = q.ilike("title", `%${data.q.replace(/[%_]/g, "")}%`);
     const { data: rows, error } = await q;
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[listMyPastes] db error:", error.message); throw new Error("Internal server error"); }
     return { results: rows ?? [] };
   });
 
@@ -360,6 +362,6 @@ export const getPasteVersions = createServerFn({ method: "POST" })
       .select("version,title,content,language,created_at")
       .eq("paste_id", data.id)
       .order("version", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[getPasteVersions] db error:", error.message); throw new Error("Internal server error"); }
     return { versions: rows ?? [] };
   });

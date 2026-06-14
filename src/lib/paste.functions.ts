@@ -362,6 +362,6 @@ export const getPasteVersions = createServerFn({ method: "POST" })
       .select("version,title,content,language,created_at")
       .eq("paste_id", data.id)
       .order("version", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[getPasteVersions] db error:", error.message); throw new Error("Internal server error"); }
     return { versions: rows ?? [] };
   });

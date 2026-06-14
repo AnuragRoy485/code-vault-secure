@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
+import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const CreateInput = z.object({
@@ -86,6 +86,16 @@ export const createPaste = createServerFn({ method: "POST" })
     }
     if (!userId && data.content.length > 100_000) {
       throw new Error("Anonymous pastes are limited to 100,000 characters. Sign in for the full 1M limit.");
+    }
+
+    let content_hash_for_log: string | null = null;
+    let ip_for_log: string | null = null;
+    if (!userId) {
+      const ip = (getRequestIP({ xForwardedFor: true }) ?? "unknown").slice(0, 64);
+      const content_hash = await sha256(data.content);
+      ip_for_log = ip;
+      content_hash_for_log = content_hash;
+      await enforceAnonLimits(supabaseAdmin, ip, content_hash);
     }
 
     const password_hash = data.password ? await sha256(data.password) : null;

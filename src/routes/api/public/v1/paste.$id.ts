@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/v1/paste/$id")({
           .eq("id", id)
           .maybeSingle();
 
-        if (error) return Response.json({ error: error.message }, { status: 500, headers: cors });
+        if (error) { console.error("[api paste GET] db error:", error.message); return Response.json({ error: "Internal server error" }, { status: 500, headers: cors }); }
         if (!row || row.visibility === "private") {
           return Response.json({ error: "Not found" }, { status: 404, headers: cors });
         }

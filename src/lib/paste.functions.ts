@@ -162,7 +162,8 @@ export const createPaste = createServerFn({ method: "POST" })
         return { id: row.id, delete_token };
       }
       if (error && !error.message.includes("duplicate")) {
-        throw new Error(error.message);
+        console.error("[createPaste] db error:", error.message);
+        throw new Error("Internal server error");
       }
     }
     throw new Error("Could not allocate a unique paste id");

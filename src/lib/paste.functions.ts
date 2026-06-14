@@ -235,6 +235,7 @@ export const searchPastes = createServerFn({ method: "POST" })
       .from("pastes")
       .select("id,title,language,created_at,expires_at,views")
       .eq("visibility", "public")
+      .eq("is_listed", true)
       .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order("created_at", { ascending: false })
       .limit(data.limit);

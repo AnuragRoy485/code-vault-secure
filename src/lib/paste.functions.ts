@@ -75,6 +75,40 @@ async function getOptionalUserId(): Promise<string | null> {
   }
 }
 
+async function enforceAnonLimits(
+  supabaseAdmin: Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").supabaseAdmin.from>> extends never
+    ? never
+    : import("@supabase/supabase-js").SupabaseClient,
+  ip: string,
+  content_hash: string,
+): Promise<void> {
+  const now = Date.now();
+  const oneMin = new Date(now - 60_000).toISOString();
+  const oneHour = new Date(now - 60 * 60_000).toISOString();
+  const oneDay = new Date(now - 24 * 60 * 60_000).toISOString();
+
+  // Duplicate-content check from same IP in last 24h
+  const { count: dupCount } = await supabaseAdmin
+    .from("anon_paste_events")
+    .select("id", { count: "exact", head: true })
+    .eq("ip", ip)
+    .eq("content_hash", content_hash)
+    .gte("created_at", oneDay);
+  if ((dupCount ?? 0) > 0) {
+    throw new Error("You've already created this exact paste recently. Edit the content or sign in for unlimited pastes.");
+  }
+
+  // Per-IP rate windows
+  const [{ count: m }, { count: h }, { count: d }] = await Promise.all([
+    supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneMin),
+    supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneHour),
+    supabaseAdmin.from("anon_paste_events").select("id", { count: "exact", head: true }).eq("ip", ip).gte("created_at", oneDay),
+  ]);
+  if ((m ?? 0) >= 5) throw new Error("Rate limit: too many pastes in the last minute. Slow down or sign in.");
+  if ((h ?? 0) >= 30) throw new Error("Rate limit: too many pastes in the last hour. Try again later or sign in.");
+  if ((d ?? 0) >= 100) throw new Error("Daily limit reached for guests. Sign in for unlimited pastes.");
+}
+
 export const createPaste = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => CreateInput.parse(data))
   .handler(async ({ data }) => {
@@ -120,7 +154,15 @@ export const createPaste = createServerFn({ method: "POST" })
         })
         .select("id")
         .single();
-      if (!error && row) return { id: row.id, delete_token };
+      if (!error && row) {
+        if (ip_for_log && content_hash_for_log) {
+          void supabaseAdmin
+            .from("anon_paste_events")
+            .insert({ ip: ip_for_log, content_hash: content_hash_for_log })
+            .then(() => undefined);
+        }
+        return { id: row.id, delete_token };
+      }
       if (error && !error.message.includes("duplicate")) {
         throw new Error(error.message);
       }

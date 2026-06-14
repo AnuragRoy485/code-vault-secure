@@ -124,6 +124,10 @@ export const Route = createFileRoute("/api/public/v1/paste")({
             .select("id")
             .single();
           if (!error && data) {
+            void supabaseAdmin
+              .from("anon_paste_events")
+              .insert({ ip, content_hash })
+              .then(() => undefined);
             const origin = new URL(request.url).origin;
             return Response.json(
               { id: data.id, url: `${origin}/p/${data.id}`, delete_token },
